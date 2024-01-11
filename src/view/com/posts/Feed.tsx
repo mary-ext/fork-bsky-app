@@ -165,16 +165,22 @@ let Feed = ({
   }, [enabled, feed, queryClient, scrollElRef])
   React.useEffect(() => {
     let cleanup1: () => void | undefined, cleanup2: () => void | undefined
+    let focused = AppState.currentState === 'active'
     const subscription = AppState.addEventListener('change', nextAppState => {
       // check for new on app foreground
-      if (nextAppState === 'active') {
+      focused = nextAppState === 'active'
+
+      if (focused) {
         checkForNewRef.current?.()
       }
     })
     cleanup1 = () => subscription.remove()
     if (pollInterval) {
       // check for new on interval
-      const i = setInterval(() => checkForNewRef.current?.(), pollInterval)
+      const i = setInterval(
+        () => focused && checkForNewRef.current?.(),
+        pollInterval,
+      )
       cleanup2 = () => clearInterval(i)
     }
     return () => {
